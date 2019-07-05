@@ -30,13 +30,7 @@ export default class SimpleLightbox {
     this.options = $.extend({}, DEFAULTS, options);
 
     this.$elem = $(elem);
-    this.$owner = $(this.options.owner);
-    this.ownerDocument = this.$owner.get(0).ownerDocument;
 
-    this.init();
-  }
-
-  init() {
     this.unbind();
     this.bind();
   }
@@ -57,16 +51,86 @@ export default class SimpleLightbox {
   }
 
   open($link) {
-    this.$modal = $(this.options.template).addClass(`${NAMESPACE}`);
-    this.$modal.data(NAMESPACE, this);
-    this.$modal.appendTo(this.$owner).show();
+    this.modal = new Modal(this);
+    this.modal.setContent($link);
+  }
 
-    this.$content = this.$modal.find('.lb-content');
-    this.$caption = this.$modal.find('.lb-caption');
-    this.$page = this.$modal.find('.lb-page');
+  links() {
+    return this.$elem.find(this.options.links);
+  }
+
+  current() {
+    return this.links().filter('.lb-current');
+  }
+
+  setCurrent($link) {
+    let $links = this.links();
+    $links.removeClass('lb-current');
+    $link.addClass('lb-current');
+  }
+
+  nextLink() {
+    let $links = this.links();
+    let index = $links.index(this.current());
+    if (index < $links.length - 1) {
+      return $links.eq(index + 1);
+    } else {
+      return null;
+    }
+  }
+
+  prevLink() {
+    let $links = this.links();
+    let index = $links.index(this.current());
+    if (index > 0) {
+      return $links.eq(index - 1);
+    } else {
+      return null;
+    }
+  }
+
+  static modals() {
+    return $(`.${NAMESPACE}`).map((i, elem) => {
+      return $(elem).data(NAMESPACE);
+    }).get();
+  }
+
+  static getDefaults() {
+    return DEFAULTS;
+  }
+
+  static setDefaults(options) {
+    return $.extend(DEFAULTS, options);
+  }
+}
+
+class Modal {
+  constructor(lightbox, options = {}) {
+    this.lightbox = lightbox;
+    this.options = lightbox.options;
+
+    this.$owner = $(this.options.owner);
+    this.ownerDocument = this.$owner.get(0).ownerDocument;
+
+    this.$container = $(this.options.template).addClass(NAMESPACE);
+    this.$container.data(NAMESPACE, this);
+    this.$container.appendTo(this.$owner).show();
+
+    this.$content = this.$container.find('.lb-content');
+    this.$caption = this.$container.find('.lb-caption');
+    this.$page = this.$container.find('.lb-page');
     this.zooming = false;
 
-    this.$modal.on('click', (e) => {
+    this.keyboardHandler = new KeyboardHandler(this);
+    this.wheelHandler = new WheelHandler(this);
+    this.imageView = new ImageView(this);
+
+    this.bind();
+  }
+
+
+  bind() {
+    this.$container.on('click', (e) => {
       if (!this.zooming) this.close();
     }).on('click', '.lb-content, .lb-toolbar, .lb-icon', (e) => {
       e.stopPropagation();
@@ -87,114 +151,72 @@ export default class SimpleLightbox {
       e.stopPropagation();
     });
 
-    this.keyboardHandler = new KeyboardHandler(this);
     this.keyboardHandler.bind();
-
-    this.wheelHandler = new WheelHandler(this);
     this.wheelHandler.bind();
-    
-    this.imageView = new ImageView(this);
     this.imageView.bind();
+  }
 
-    this.setContent($link);
+  unbind() {
+    this.$container.off(`.${NAMESPACE}`);
+
+    this.keyboardHandler.unbind();
+    this.wheelHandler.unbind();
+    this.imageView.unbind();
   }
 
   close() {
-    this.imageView.unbind();
-    this.keyboardHandler.unbind();
-    this.wheelHandler.unbind();
-
-    this.$modal.remove();
-    this.$modal = null;
-  }
-
-  links() {
-    return this.$elem.find(this.options.links);
-  }
-
-  currLink() {
-    return this.links().filter('.lb-current');
-  }
-
-  nextLink() {
-    let index = this.links().index(this.currLink());
-    if (index < this.links().length - 1) {
-      return this.links().eq(index + 1);
-    } else {
-      return null;
-    }
-  }
-
-  prevLink() {
-    let index = this.links().index(this.currLink());
-    if (index > 0) {
-      return this.links().eq(index - 1);
-    } else {
-      return null;
-    }
+    this.unbind();
+    this.$container.remove();
+    this.$container = null;
   }
 
   next() {
-    let $next = this.nextLink();
+    let $next = this.lightbox.nextLink();
     if ($next) this.setContent($next);
   }
 
   prev() {
-    let $prev = this.prevLink();
+    let $prev = this.lightbox.prevLink();
     if ($prev) this.setContent($prev);
   }
 
   toggleZoom() {
     if (this.zooming) {
-      this.$modal.removeClass('lb-zooming');
+      this.$container.removeClass('lb-zooming');
       this.zooming = false;
     } else {
-      this.$modal.addClass('lb-zooming');
+      this.$container.addClass('lb-zooming');
       this.zooming = true;
     }
     this.imageView.initImage(this.zooming);
   }
 
   openWindow() {
-    window.open(this.currLink().attr('href'));
+    window.open(this.lightbox.current().attr('href'));
   }
 
   setContent($link) {
-    let $links = this.links();
-    $links.removeClass('lb-current');
-    this.$link = $link.addClass('lb-current');
+    this.lightbox.setCurrent($link);
+
+    let $links = this.lightbox.links();
+    this.$page.text(`${$links.index($link) + 1}/${$links.length}`);
 
     let $cap = $('<span>').attr('title', $link.attr('title')).text($link.attr('title'))
     this.$caption.empty().append($cap);
-    this.$page.text(`${$links.index($link) + 1}/${$links.length}`);
 
     this.imageView.setImage($link.attr('href'));
-  }
-
-  static instances() {
-    return $(`.${NAMESPACE}`).map((i, elem) => {
-      return $(elem).data(NAMESPACE);
-    }).get();
-  }
-
-  static getDefaults() {
-    return DEFAULTS;
-  }
-
-  static setDefaults(options) {
-    return $.extend(DEFAULTS, options);
   }
 }
 
 class ImageView {
-  constructor(lightbox) {
-    this.lightbox = lightbox;
+  constructor(modal) {
+    this.modal = modal;
     this.zooming = false;
     this.dragging = false;
   }
 
   bind() {
-    this.lightbox.$modal.on('mousedown',  (e) => {
+    this.modal.$container.on('mousedown',  (e) => {
       this.dragging = true;
       this.dragStart(e.pageX, e.pageY);
       e.preventDefault();
@@ -220,7 +242,7 @@ class ImageView {
 
   setImage(source) {
     if (this.$img) this.$img.remove();
-    this.$img = $('<img>').attr('src', source).prependTo(this.lightbox.$content);
+    this.$img = $('<img>').attr('src', source).prependTo(this.modal.$content);
 
     this.initImage();
   }
@@ -229,7 +251,7 @@ class ImageView {
     if (zooming != null) this.zooming = zooming;
 
     let $img = this.$img;
-    let $modal = this.lightbox.$modal;
+    let $container = this.modal.$container;
 
     if (this.zooming) {
       $img.css({ 'max-width': '', 'max-height': '' });
@@ -240,11 +262,11 @@ class ImageView {
     this.movableX = 0;
     this.movableY = 0;
 
-    if ($img.width() > $modal.width()) {
-      this.movableX += ($img.width() - $modal.width()) / 2;
+    if ($img.width() > $container.width()) {
+      this.movableX += ($img.width() - $container.width()) / 2;
     }
-    if ($img.height() > $modal.height()) {
-      this.movableY += ($img.height() - $modal.height()) / 2;
+    if ($img.height() > $container.height()) {
+      this.movableY += ($img.height() - $container.height()) / 2;
     }
 
     if (this.movableX == 0 && this.movableY == 0) {
@@ -295,15 +317,15 @@ class ImageView {
   toggleZoom(offsetX, offsetY) {
     let dx = (this.$img.width() / 2 - offsetX) * (this.$img.get(0).naturalWidth / this.$img.width());
     let dy = (this.$img.height() / 2 - offsetY) * (this.$img.get(0).naturalHeight / this.$img.height());
-    this.lightbox.toggleZoom();
+    this.modal.toggleZoom();
     this.translate(dx, dy);
   }
 }
 
 class KeyboardHandler {
-  constructor(lightbox) {
-    this.lightbox = lightbox;
-    this.ownerDocument = lightbox.ownerDocument;
+  constructor(modal) {
+    this.modal = modal;
+    this.ownerDocument = modal.ownerDocument;
   }
 
   bind() {
@@ -322,27 +344,27 @@ class KeyboardHandler {
     case 8:  // BACKSPACE
     case 34: // PAGE DOWN
     case 37: // <
-      this.lightbox.prev();
+      this.modal.prev();
       break;
     case 32: // SPACE
     case 33: // PAGE UP
     case 39: // >
-      this.lightbox.next();
+      this.modal.next();
       break;
     case 13: // ENTER
-      this.lightbox.toggleZoom();
+      this.modal.toggleZoom();
       break;
     case 27: // ESC
-      this.lightbox.close();
+      this.modal.close();
       break;
     }
   }
 }
 
 class WheelHandler {
-  constructor(lightbox) {
-    this.lightbox = lightbox;
-    this.ownerDocument = lightbox.ownerDocument;
+  constructor(modal) {
+    this.modal = modal;
+    this.ownerDocument = modal.ownerDocument;
   }
 
   bind() {
@@ -355,14 +377,14 @@ class WheelHandler {
 
   static handler(e) {
     e.preventDefault();
-    SimpleLightbox.instances().forEach((inst) => {
-      if (inst.zooming) {
-        inst.imageView.wheel(e.deltaX, e.deltaY);
+    SimpleLightbox.modals().forEach((modal) => {
+      if (modal.zooming) {
+        modal.imageView.wheel(e.deltaX, e.deltaY);
       } else {
         if (e.deltaY < 0) {
-          inst.prev();
+          modal.prev();
         } else {
-          inst.next();
+          modal.next();
         }
       }
     });

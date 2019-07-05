@@ -25,17 +25,18 @@ describe('jquery-simple-lightbox', () => {
   }
 
   describe('basic', () => {
-    let lightbox;
+    let lightbox, modal;
     let $basic, $links;
     let $modal, $img;
 
     beforeEach(() => {
       $basic = $('#basic');
-      $links = $basic.find('a')
+      $links = $basic.find('a');
       $links.eq(0).click();
       $modal = $('body').find('.simple-lightbox');
       $img = $modal.find('.lb-content img');
       lightbox = $basic.data('simple-lightbox');
+      modal = lightbox.modal;
     });
 
     describe('open modal', () => {
@@ -134,12 +135,12 @@ describe('jquery-simple-lightbox', () => {
 
     describe('window resize', () => {
       beforeEach(() => {
-        lightbox.imageView.transX = 10;
+        modal.imageView.transX = 10;
         $(window).trigger('resize');
       });
       
       it('initializes image by resize', () => {
-        expect(lightbox.imageView.transX).toEqual(0);
+        expect(modal.imageView.transX).toEqual(0);
       });
     });
 
@@ -150,14 +151,14 @@ describe('jquery-simple-lightbox', () => {
 
       it('transforms image by drag', () => {
         drag($img, 10, 10);
-        expect(lightbox.imageView.transX).toEqual(10);
+        expect(modal.imageView.transX).toEqual(10);
       });
 
       it('transforms image by wheel', () => {
         if (!wheelSupported()) return;
 
         wheel(10, 10);
-        expect(lightbox.imageView.transX).toEqual(10);
+        expect(modal.imageView.transX).toEqual(10);
       });
     });
   });
