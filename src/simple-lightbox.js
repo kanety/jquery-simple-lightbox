@@ -1,10 +1,12 @@
 import $ from 'jquery';
 
 import { NAMESPACE } from './consts';
+import ViewFactory from './views/view-factory';
 
 const DEFAULTS = {
   links: 'a[rel="lightbox"]',
   owner: 'body',
+  imageExt: /^(jpg|jpeg|png|gif|bmp|webp)$/,
   template: `
 <div class="lb-modal">
   <div class="lb-wrapper">
@@ -19,7 +21,9 @@ const DEFAULTS = {
     </div>
     <div class="lb-icon lb-prev"></div>
     <div class="lb-icon lb-next"></div>
-    <div class="lb-content"></div>
+    <div class="lb-content">
+      <div class="lb-loading"></div>
+    </div>
   </div>
 </div>
 `
@@ -30,24 +34,27 @@ export default class SimpleLightbox {
     this.options = $.extend({}, DEFAULTS, options);
 
     this.$elem = $(elem);
+    this.uid = new Date().getTime() + Math.random();
+    this.namespace = `${NAMESPACE}-${this.uid}`;
 
     this.unbind();
     this.bind();
   }
 
   destroy() {
+    if (this.modal) this.modal.close();
     this.unbind();
   }
 
   bind() {
-    this.$elem.on(`click.${NAMESPACE}`, this.options.links, (e) => {
+    this.$elem.on(`click.${this.namespace}`, this.options.links, (e) => {
       e.preventDefault();
       this.open($(e.currentTarget));
     });
   }
 
   unbind() {
-    this.$elem.off(`.${NAMESPACE}`);
+    this.$elem.off(`.${this.namespace}`);
   }
 
   open($link) {
@@ -116,18 +123,18 @@ class Modal {
     this.$container.data(NAMESPACE, this);
     this.$container.appendTo(this.$owner).show();
 
+    this.$wrapper = this.$container.find('.lb-wrapper');
     this.$content = this.$container.find('.lb-content');
     this.$caption = this.$container.find('.lb-caption');
     this.$page = this.$container.find('.lb-page');
+    this.$loading = this.$container.find('.lb-loading');
     this.zooming = false;
 
     this.keyboardHandler = new KeyboardHandler(this);
     this.wheelHandler = new WheelHandler(this);
-    this.imageView = new ImageView(this);
 
     this.bind();
   }
-
 
   bind() {
     this.$container.on('click', (e) => {
@@ -149,25 +156,27 @@ class Modal {
     }).on('click', '.lb-prev', (e) => {
       this.prev();
       e.stopPropagation();
+    }).hover((e) => {
+      this.$wrapper.addClass('lb-hover');
+    }, (e) => {
+      this.$wrapper.removeClass('lb-hover');
     });
 
     this.keyboardHandler.bind();
     this.wheelHandler.bind();
-    this.imageView.bind();
   }
 
   unbind() {
-    this.$container.off(`.${NAMESPACE}`);
+    this.$container.off();
 
     this.keyboardHandler.unbind();
     this.wheelHandler.unbind();
-    this.imageView.unbind();
   }
 
   close() {
     this.unbind();
     this.$container.remove();
-    this.$container = null;
+    if (this.view) this.view.destroy();
   }
 
   next() {
@@ -188,11 +197,15 @@ class Modal {
       this.$container.addClass('lb-zooming');
       this.zooming = true;
     }
-    this.imageView.initImage(this.zooming);
+    if (this.view) this.view.init(this.zooming);
   }
 
   openWindow() {
     window.open(this.lightbox.current().attr('href'));
+  }
+
+  wheel(dx, dy) {
+    if (this.view) this.view.wheel(dx, dy);
   }
 
   setContent($link) {
@@ -204,121 +217,9 @@ class Modal {
     let $cap = $('<span>').attr('title', $link.attr('title')).text($link.attr('title'))
     this.$caption.empty().append($cap);
 
-    this.imageView.setImage($link.attr('href'));
-  }
-}
-
-class ImageView {
-  constructor(modal) {
-    this.modal = modal;
-    this.zooming = false;
-    this.dragging = false;
-  }
-
-  bind() {
-    this.modal.$container.on('mousedown',  (e) => {
-      this.dragging = true;
-      this.dragStart(e.pageX, e.pageY);
-      e.preventDefault();
-    }).on('mousemove', (e) => {
-      if (this.dragging) this.drag(e.pageX, e.pageY);
-      e.preventDefault();
-    }).on('mouseup mouseleave', (e) => {
-      this.dragging = false;
-      e.preventDefault();
-    }).on('dblclick', 'img', (e) => {
-      this.toggleZoom(e.offsetX, e.offsetY);
-      e.preventDefault();
-    });
-
-    $(window).on(`resize.${NAMESPACE}`, (e) => {
-      this.initImage();
-    });
-  }
-
-  unbind() {
-    $(window).off(`.${NAMESPACE}`);
-  }
-
-  setImage(source) {
-    if (this.$img) this.$img.remove();
-    this.$img = $('<img>').attr('src', source).prependTo(this.modal.$content);
-
-    this.initImage();
-  }
-
-  initImage(zooming = null) {
-    if (zooming != null) this.zooming = zooming;
-
-    let $img = this.$img;
-    let $container = this.modal.$container;
-
-    if (this.zooming) {
-      $img.css({ 'max-width': '', 'max-height': '' });
-    } else {
-      $img.css({ 'max-width': '100%', 'max-height': '100%' });
-    }
-
-    this.movableX = 0;
-    this.movableY = 0;
-
-    if ($img.width() > $container.width()) {
-      this.movableX += ($img.width() - $container.width()) / 2;
-    }
-    if ($img.height() > $container.height()) {
-      this.movableY += ($img.height() - $container.height()) / 2;
-    }
-
-    if (this.movableX == 0 && this.movableY == 0) {
-      $img.css({ 'cursor': 'auto', 'left': '0', 'transform': '' });
-    } else {
-      $img.css({ 'cursor': 'move' });
-    }
-
-    if (this.movableX != 0) {
-      $img.css({ 'left': `-${this.movableX}px` });
-    }
-
-    if (!this.zooming) {
-      this.transX = 0;
-      this.transY = 0;
-    }
-    this.translate(this.transX, this.transY);
-  }
-
-  dragStart(x, y) {
-    this.startX = x;
-    this.startY = y;
-    this.startTransX = this.transX;
-    this.startTransY = this.transY;
-  }
-
-  drag(x, y) {
-    let dx = this.startTransX + (x - this.startX);
-    let dy = this.startTransY + (y - this.startY);
-    this.translate(dx, dy);
-  }
-
-  translate(dx, dy) {
-    if (dx < -this.movableX) dx = -this.movableX;
-    if (dx > this.movableX) dx = this.movableX;
-    if (dy < -this.movableY) dy = -this.movableY;
-    if (dy > this.movableY) dy = this.movableY;
-
-    this.transX = dx;
-    this.transY = dy;
-    this.$img.css('transform', `translate(${dx}px, ${dy}px)`);
-  }
-
-  wheel(dx, dy) {
-    this.translate(this.transX + dx, this.transY - dy);
-  }
-
-  toggleZoom(offsetX, offsetY) {
-    let dx = (this.$img.width() / 2 - offsetX) * (this.$img.get(0).naturalWidth / this.$img.width());
-    let dy = (this.$img.height() / 2 - offsetY) * (this.$img.get(0).naturalHeight / this.$img.height());
-    this.modal.toggleZoom();
-    this.translate(dx, dy);
+    if (this.view) this.view.destroy();
+    this.view = new ViewFactory(this).create($link);
+    this.view.set($link.attr('href'), this.zooming);
   }
 }
 
@@ -326,17 +227,19 @@ class KeyboardHandler {
   constructor(modal) {
     this.modal = modal;
     this.ownerDocument = modal.ownerDocument;
-  }
+
+    this.uid = new Date().getTime() + Math.random();
+    this.namespace = `${NAMESPACE}-${this.uid}`;  }
 
   bind() {
-    $(this.ownerDocument).on(`keydown.${NAMESPACE}`, (e) => {
+    $(this.ownerDocument).on(`keydown.${this.namespace}`, (e) => {
       this.keydown(e.keyCode, e.ctrlKey, e.shiftKey);
       e.preventDefault();
     });
   }
 
   unbind() {
-    $(this.ownerDocument).off(`.${NAMESPACE}`);
+    $(this.ownerDocument).off(`.${this.namespace}`);
   }
 
   keydown(keyCode, ctrl, shift) {
@@ -368,18 +271,19 @@ class WheelHandler {
   }
 
   bind() {
-    this.ownerDocument.addEventListener('wheel', WheelHandler.handler, { passive: false });
+    this.ownerDocument.addEventListener('wheel', this.handler, { passive: false });
   }
 
   unbind() {
-    this.ownerDocument.removeEventListener('wheel', WheelHandler.handler, { passive: false });
+    this.ownerDocument.removeEventListener('wheel', this.handler, { passive: false });
   }
 
-  static handler(e) {
+  handler(e) {
     e.preventDefault();
+
     SimpleLightbox.modals().forEach((modal) => {
       if (modal.zooming) {
-        modal.imageView.wheel(e.deltaX, e.deltaY);
+        modal.wheel(e.deltaX, e.deltaY);
       } else {
         if (e.deltaY < 0) {
           modal.prev();

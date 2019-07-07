@@ -36,7 +36,7 @@ Change link selector:
 
 ```javascript
 $('#gal').simpleLightbox({
-  links: 'a[rel="others"]'
+  links: 'a[rel="lightbox"]'
 });
 ```
 
@@ -44,7 +44,15 @@ Change lightbox owner:
 
 ```javascript
 $('#gal').simpleLightbox({
-  owner: 'body div:first'
+  owner: 'body'
+});
+```
+
+Change image extensions:
+
+```javascript
+$('#gal').simpleLightbox({
+  imageExt: /^(jpg|jpeg|png|gif|bmp|webp)$/
 });
 ```
 

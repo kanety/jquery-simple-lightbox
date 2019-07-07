@@ -17,23 +17,21 @@ module.exports = function(config) {
     files: [
       'node_modules/jquery/dist/jquery.min.js',
       'src/*.js',
-      'test/*spec.js',
+      'test/**/*spec.js',
       'index.html', {
-        pattern: 'img/*',
+        pattern: 'dist/*',
         served: true,
         included: false
-      },{
-        pattern: 'dist/*.css',
+      }, {
+        pattern: 'test/assets/*',
         served: true,
         included: false
-      },
+      }
     ],
 
     proxies: {
-      '/dist/jquery-simple-lightbox.css': '/base/dist/jquery-simple-lightbox.css',
-      '/img/1920x1080.png': '/base/img/1920x1080.png',
-      '/img/1080x1920.png': '/base/img/1080x1920.png',
-      '/img/640x480.png': '/base/img/640x480.png'
+      '/dist/': '/base/dist/',
+      '/test/assets/': '/base/test/assets/'
     },
 
 
@@ -46,7 +44,7 @@ module.exports = function(config) {
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
     preprocessors: {
       'src/*.js': ['webpack', 'sourcemap'],
-      'test/*spec.js': ['webpack', 'sourcemap'],
+      'test/**/*spec.js': ['webpack', 'sourcemap'],
       'index.html': ['html2js']
     },
 
