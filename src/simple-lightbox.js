@@ -229,7 +229,8 @@ class KeyboardHandler {
     this.ownerDocument = modal.ownerDocument;
 
     this.uid = new Date().getTime() + Math.random();
-    this.namespace = `${NAMESPACE}-${this.uid}`;  }
+    this.namespace = `${NAMESPACE}-${this.uid}`;
+  }
 
   bind() {
     $(this.ownerDocument).on(`keydown.${this.namespace}`, (e) => {

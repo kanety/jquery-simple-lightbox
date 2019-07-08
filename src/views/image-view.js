@@ -83,10 +83,8 @@ export default class ImageView {
       $img.css({ 'left': `-${this.movableX}px` });
     }
 
-    if (!this.zooming) {
-      this.transX = 0;
-      this.transY = 0;
-    }
+    this.transX = 0;
+    this.transY = 0;
     this.translate(this.transX, this.transY);
   }
 
