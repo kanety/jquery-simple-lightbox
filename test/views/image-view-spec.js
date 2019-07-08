@@ -8,14 +8,19 @@ describe('jquery-simple-lightbox', () => {
 
   describe('image-view', () => {
     let $links, $container;
-    let lightbox;
+    let lightbox, view;
 
-    beforeEach(() => {
+    beforeEach((done) => {
       $links = $('#basic').find('a');
       $links.eq(0).click();
 
       lightbox = $('#basic').data('simple-lightbox');
+      view = lightbox.modal.view;
+
       $container = lightbox.modal.$container;
+      $container.find('img').on('load', () => {
+        done();
+      });
     });
 
     it('moves', () => {
@@ -30,30 +35,28 @@ describe('jquery-simple-lightbox', () => {
     });
 
     describe('window resize', () => {
-      beforeEach(() => {
-        lightbox.modal.view.transX = 10;
-        $(window).trigger('resize');
-      });
-      
       it('initializes image by resize', () => {
-        expect(lightbox.modal.view.transX).toEqual(0);
+        view.transX = 10;
+        $(window).trigger('resize');
+        expect(view.transX).toEqual(0);
       });
     });
 
     describe('drag', () => {
-      beforeEach((done) => {
+      beforeEach(() => {
         $container.find('.lb-zoom').click();
-        let $img = $container.find('img');
-        $img.on('mouseup', () => {
-          setTimeout(() => {
-            done();
-          }, 500);
-        });
-        drag($img, 10, 10);
       });
 
-      it('transforms', () => {
-        expect(lightbox.modal.view.transX).toEqual(10);
+      it('handles event', () => {
+        spyOn(view, 'drag');
+        drag($container.find('img'), 1, 1);
+        expect(view.drag).toHaveBeenCalled();
+      });
+
+      it('transforms image', () => {
+        view.dragStart(0, 0);
+        view.drag(1, 1);
+        expect(view.transX).toEqual(1);
       });
     });
 
@@ -61,11 +64,17 @@ describe('jquery-simple-lightbox', () => {
       describe('wheel', () => {
         beforeEach(() => {
           $container.find('.lb-zoom').click();
-          wheel(10, 10);
         });
 
-        it('transforms', () => {
-          expect(lightbox.modal.view.transX).toEqual(10);
+        it('handles event', () => {
+          spyOn(view, 'wheel');
+          wheel(1, 1);
+          expect(view.wheel).toHaveBeenCalled();
+        });
+
+        it('transforms image', () => {
+          view.wheel(1, 1);
+          expect(view.transX).toEqual(1);
         });
       });
     }

@@ -31,7 +31,7 @@ export default class IframeView {
   set(source, zooming) {
     this.$inner = $('<div>').prependTo(this.modal.$content);
     this.$iframe = $('<iframe>').attr('src', source).css('visibility', 'hidden').prependTo(this.$inner);
-    this.$iframe.on('load', (e) => {
+    this.$iframe.on('load', () => {
       this.init(zooming);
       this.$iframe.css({ 'visibility': 'visible', 'background-color': '#fff' });
     });

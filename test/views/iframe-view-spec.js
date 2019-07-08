@@ -6,13 +6,15 @@ describe('jquery-simple-lightbox', () => {
 
   describe('iframe-view', () => {
     let $links, $container;
-    let lightbox;
+    let lightbox, view;
 
     beforeEach((done) => {
       $links = $('#iframe').find('a');
       $links.eq(0).click();
 
       lightbox = $('#iframe').data('simple-lightbox');
+      view = lightbox.modal.view;
+
       $container = lightbox.modal.$container;
       $container.find('iframe').on('load', () => {
         done();
@@ -44,7 +46,7 @@ describe('jquery-simple-lightbox', () => {
       beforeEach(() => {
         $(window).trigger('resize');
       });
-      
+
       it('calls fit', () => {
         expect($container.find('iframe').attr('scrolling')).toEqual('no');
       });

@@ -10,6 +10,9 @@ export default class ImageView {
     this.zooming = false;
     this.dragging = false;
 
+    this.transX = 0;
+    this.transY = 0;
+
     this.bind();
   }
 
@@ -46,9 +49,11 @@ export default class ImageView {
   }
 
   set(source, zooming = null) {
-    this.$img = $('<img>').attr('src', source).prependTo(this.modal.$content);
-
-    this.init(zooming);
+    this.$img = $('<img>').attr('src', source).hide().prependTo(this.modal.$content);
+    this.$img.on('load', () => {
+      this.init(zooming);
+      this.$img.show();
+    });
   }
 
   init(zooming = null) {
@@ -83,9 +88,7 @@ export default class ImageView {
       $img.css({ 'left': `-${this.movableX}px` });
     }
 
-    this.transX = 0;
-    this.transY = 0;
-    this.translate(this.transX, this.transY);
+    this.translate(0, 0);
   }
 
   dragStart(x, y) {

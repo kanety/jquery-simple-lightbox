@@ -119,10 +119,7 @@ class Modal {
     this.options = lightbox.options;
 
     this.$owner = $(this.options.owner);
-    this.ownerDocument = this.$owner.get(0).ownerDocument;
-
-    this.$container = $(this.options.template).addClass(NAMESPACE);
-    this.$container.data(NAMESPACE, this);
+    this.$container = $(this.options.template).addClass(NAMESPACE).data(NAMESPACE, this);
     this.$container.appendTo(this.$owner).show();
 
     this.$wrapper = this.$container.find('.lb-wrapper');
@@ -228,21 +225,20 @@ class Modal {
 class KeyboardHandler {
   constructor(modal) {
     this.modal = modal;
-    this.ownerDocument = modal.ownerDocument;
 
     this.uid = new Date().getTime() + Math.random();
     this.namespace = `${NAMESPACE}-${this.uid}`;
   }
 
   bind() {
-    $(this.ownerDocument).on(`keydown.${this.namespace}`, (e) => {
+    $(document).on(`keydown.${this.namespace}`, (e) => {
       this.keydown(e.keyCode, e.ctrlKey, e.shiftKey);
       e.preventDefault();
     });
   }
 
   unbind() {
-    $(this.ownerDocument).off(`.${this.namespace}`);
+    $(document).off(`.${this.namespace}`);
   }
 
   keydown(keyCode, ctrl, shift) {
@@ -270,15 +266,14 @@ class KeyboardHandler {
 class WheelHandler {
   constructor(modal) {
     this.modal = modal;
-    this.ownerDocument = modal.ownerDocument;
   }
 
   bind() {
-    this.ownerDocument.addEventListener('wheel', this.handler, { passive: false });
+    document.addEventListener('wheel', this.handler, { passive: false });
   }
 
   unbind() {
-    this.ownerDocument.removeEventListener('wheel', this.handler, { passive: false });
+    document.removeEventListener('wheel', this.handler, { passive: false });
   }
 
   handler(e) {
