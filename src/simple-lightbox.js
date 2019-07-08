@@ -48,8 +48,10 @@ export default class SimpleLightbox {
 
   bind() {
     this.$elem.on(`click.${this.namespace}`, this.options.links, (e) => {
-      e.preventDefault();
-      this.open($(e.currentTarget));
+      if (!e.ctrlKey && !e.shiftKey && !e.metaKey) {
+        e.preventDefault();
+        this.open($(e.currentTarget));
+      }
     });
   }
 
