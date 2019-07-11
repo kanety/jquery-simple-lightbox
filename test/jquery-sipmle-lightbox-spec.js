@@ -95,10 +95,10 @@ describe('jquery-simple-lightbox', () => {
         keydown(document, 37);
         expect($links.eq(0).hasClass('lb-current')).toEqual(true);
 
-        keydown(document, 33);
+        keydown(document, 34);
         expect($links.eq(1).hasClass('lb-current')).toEqual(true);
 
-        keydown(document, 34);
+        keydown(document, 33);
         expect($links.eq(0).hasClass('lb-current')).toEqual(true);
 
         keydown(document, 32);
