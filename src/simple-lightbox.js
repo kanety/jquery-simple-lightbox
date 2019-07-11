@@ -98,8 +98,8 @@ export default class SimpleLightbox {
     }
   }
 
-  static modals() {
-    return $(`.${NAMESPACE}`).map((i, elem) => {
+  static modals(owner = window.document) {
+    return $(owner).find(`.${NAMESPACE}`).map((i, elem) => {
       return $(elem).data(NAMESPACE);
     }).get();
   }
@@ -119,6 +119,7 @@ class Modal {
     this.options = lightbox.options;
 
     this.$owner = $(this.options.owner);
+    this.ownerDocument = this.$owner.get(0).ownerDocument;
     this.$container = $(this.options.template).addClass(NAMESPACE).data(NAMESPACE, this);
     this.$container.appendTo(this.$owner).show();
 
@@ -277,17 +278,16 @@ class WheelHandler {
   }
 
   bind() {
-    document.addEventListener('wheel', this.handler, { passive: false });
+    this.modal.ownerDocument.addEventListener('wheel', this.handler, { passive: false });
   }
 
   unbind() {
-    document.removeEventListener('wheel', this.handler, { passive: false });
+    this.modal.ownerDocument.removeEventListener('wheel', this.handler, { passive: false });
   }
 
   handler(e) {
     e.preventDefault();
-
-    SimpleLightbox.modals().forEach((modal) => {
+    SimpleLightbox.modals(this).forEach((modal) => {
       if (modal.zooming) {
         modal.wheel(e.deltaX, e.deltaY);
       } else {
