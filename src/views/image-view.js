@@ -50,9 +50,11 @@ export default class ImageView {
 
   set(source, zooming = null) {
     this.$img = $('<img>').attr('src', source).hide().prependTo(this.modal.$content);
+    this.modal.loading();
     this.$img.on('load', () => {
       this.init(zooming);
       this.$img.show();
+      this.modal.loaded();
     });
   }
 

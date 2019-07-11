@@ -220,6 +220,14 @@ class Modal {
     this.view = new ViewFactory(this).create($link);
     this.view.set($link.attr('href'), this.zooming);
   }
+
+  loading() {
+    this.$loading.show();
+  }
+
+  loaded() {
+    this.$loading.hide();
+  }
 }
 
 class KeyboardHandler {
