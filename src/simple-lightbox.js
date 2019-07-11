@@ -120,6 +120,8 @@ class Modal {
 
     this.$owner = $(this.options.owner);
     this.ownerDocument = this.$owner.get(0).ownerDocument;
+    $(this.ownerDocument.body).addClass(`${NAMESPACE}-disable-scroll`);
+
     this.$container = $(this.options.template).addClass(NAMESPACE).data(NAMESPACE, this);
     this.$container.appendTo(this.$owner).show();
 
@@ -176,6 +178,7 @@ class Modal {
   close() {
     this.unbind();
     this.$container.remove();
+    $(this.ownerDocument.body).removeClass(`${NAMESPACE}-disable-scroll`);
     if (this.view) this.view.destroy();
   }
 
