@@ -253,12 +253,12 @@ class KeyboardHandler {
   keydown(keyCode, ctrl, shift) {
     switch(keyCode) {
     case 8:  // BACKSPACE
-    case 34: // PAGE DOWN
+    case 33: // PAGE UP
     case 37: // <
       this.modal.prev();
       break;
     case 32: // SPACE
-    case 33: // PAGE UP
+    case 34: // PAGE DOWN
     case 39: // >
       this.modal.next();
       break;
