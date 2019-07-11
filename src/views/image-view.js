@@ -88,7 +88,7 @@ export default class ImageView {
       $img.css({ 'left': `-${this.movableX}px` });
     }
 
-    this.translate(0, 0);
+    this.translate(this.transX, this.transY);
   }
 
   dragStart(x, y) {
