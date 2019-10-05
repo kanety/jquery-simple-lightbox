@@ -126,7 +126,7 @@ describe('jquery-simple-lightbox', () => {
     beforeEach(() => {
       eval($('script').text());
       $basic = $('#basic');
-      $basic.find('a:first').click();
+      $basic.find('a').first().click();
       $basic.data('simple-lightbox').destroy();
     });
 
