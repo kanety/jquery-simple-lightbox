@@ -281,25 +281,25 @@ class WheelHandler {
   }
 
   bind() {
-    this.modal.ownerDocument.addEventListener('wheel', this.handler, { passive: false });
+    this.listener = this.wheel.bind(this);
+    this.modal.ownerDocument.addEventListener('wheel', this.listener, { passive: false });
   }
 
   unbind() {
-    this.modal.ownerDocument.removeEventListener('wheel', this.handler, { passive: false });
+    this.modal.ownerDocument.removeEventListener('wheel', this.listener, { passive: false });
   }
 
-  handler(e) {
+  wheel(e) {
     e.preventDefault();
-    SimpleLightbox.modals(this).forEach((modal) => {
-      if (modal.zooming) {
-        modal.wheel(e.deltaX, e.deltaY);
+
+    if (this.modal.zooming) {
+      this.modal.wheel(e.deltaX, e.deltaY);
+    } else {
+      if (e.deltaY < 0) {
+        this.modal.prev();
       } else {
-        if (e.deltaY < 0) {
-          modal.prev();
-        } else {
-          modal.next();
-        }
+        this.modal.next();
       }
-    });
+    }
   }
 }
