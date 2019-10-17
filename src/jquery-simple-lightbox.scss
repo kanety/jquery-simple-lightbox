@@ -58,7 +58,7 @@
         }
         .lb-zoom {
           &:after {
-            content: '\002B';  // +
+            content: '+';
           }
         }
         .lb-window {
@@ -69,7 +69,7 @@
         .lb-close {
           margin-right: 10px;
           &:after {
-            content: '\00D7';  // ×
+            content: '×';
           }
         }
       }
@@ -157,7 +157,7 @@
   &.lb-zooming {
     .lb-wrapper {
       .lb-toolbar .lb-tools .lb-zoom:after {
-        content: '\2212';  // −
+        content: '−'; 
       }
       .lb-content {
         width: 100%;
