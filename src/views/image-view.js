@@ -9,9 +9,10 @@ export default class ImageView {
 
     this.zooming = false;
     this.dragging = false;
-
     this.transX = 0;
     this.transY = 0;
+
+    this.touchMoveListener = this.touchMove.bind(this);
 
     this.bind();
   }
@@ -26,16 +27,23 @@ export default class ImageView {
       this.dragging = true;
       this.dragStart(e.pageX, e.pageY);
       e.preventDefault();
+    }).on(`touchstart.${this.namespace}`, (e) => {
+      this.dragging = true;
+      let t = e.originalEvent.changedTouches[0];
+      this.dragStart(t.pageX, t.pageY);
     }).on(`mousemove.${this.namespace}`, (e) => {
       if (this.dragging) this.drag(e.pageX, e.pageY);
       e.preventDefault();
     }).on(`mouseup.${this.namespace} mouseleave.${this.namespace}`, (e) => {
       this.dragging = false;
-      e.preventDefault();
+    }).on(`touchend.${this.namespace}`, (e) => {
+      this.dragging = false;
     }).on(`dblclick.${this.namespace}`, 'img', (e) => {
       this.toggleZoom(e.offsetX, e.offsetY);
       e.preventDefault();
     });
+
+    this.modal.ownerDocument.addEventListener('touchmove', this.touchMoveListener, { passive: false });
 
     $(window).on(`resize.${this.namespace}`, (e) => {
       this.init();
@@ -44,6 +52,8 @@ export default class ImageView {
 
   unbind() {
     this.modal.$container.off(`.${this.namespace}`);
+    this.modal.ownerDocument.removeEventListener('touchmove', this.touchMoveListener, { passive: false });
+
     $(window).off(`.${this.namespace}`);
     if (this.$img) this.$img.remove();
   }
@@ -104,6 +114,11 @@ export default class ImageView {
     let dx = this.startTransX + (x - this.startX);
     let dy = this.startTransY + (y - this.startY);
     this.translate(dx, dy);
+  }
+
+  touchMove(e) {
+    if (this.dragging) this.drag(e.changedTouches[0].pageX, e.changedTouches[0].pageY);
+    e.preventDefault();
   }
 
   translate(dx, dy) {

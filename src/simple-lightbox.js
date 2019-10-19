@@ -9,7 +9,7 @@ const DEFAULTS = {
   imageExt: /^(jpg|jpeg|png|gif|bmp|webp)$/,
   template: `
 <div class="lb-modal">
-  <div class="lb-wrapper">
+  <div class="lb-wrapper lb-hover">
     <div class="lb-toolbar">
       <div class="lb-page"></div>
       <div class="lb-caption"></div>
@@ -98,12 +98,6 @@ export default class SimpleLightbox {
     }
   }
 
-  static modals(owner = window.document) {
-    return $(owner).find(`.${NAMESPACE}`).map((i, elem) => {
-      return $(elem).data(NAMESPACE);
-    }).get();
-  }
-
   static getDefaults() {
     return DEFAULTS;
   }
@@ -158,7 +152,9 @@ class Modal {
     }).on('click', '.lb-prev', (e) => {
       this.prev();
       e.stopPropagation();
-    }).hover((e) => {
+    });
+
+    this.$container.hover((e) => {
       this.$wrapper.addClass('lb-hover');
     }, (e) => {
       this.$wrapper.removeClass('lb-hover');
@@ -278,10 +274,10 @@ class KeyboardHandler {
 class WheelHandler {
   constructor(modal) {
     this.modal = modal;
+    this.listener = this.wheel.bind(this);
   }
 
   bind() {
-    this.listener = this.wheel.bind(this);
     this.modal.ownerDocument.addEventListener('wheel', this.listener, { passive: false });
   }
 
