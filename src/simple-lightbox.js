@@ -8,21 +8,21 @@ const DEFAULTS = {
   owner: 'body',
   imageExt: /^(jpg|jpeg|png|gif|bmp|webp)$/,
   template: `
-<div class="lb-modal">
-  <div class="lb-wrapper lb-hover">
-    <div class="lb-toolbar">
-      <div class="lb-page"></div>
-      <div class="lb-caption"></div>
-      <div class="lb-tools">
-        <div class="lb-tool lb-zoom" title="Zoom"></div>
-        <div class="lb-tool lb-window" title="Open new window"></div>
-        <div class="lb-tool lb-close" title="Close"></div>
+<div class="${NAMESPACE} ${NAMESPACE}-modal">
+  <div class="${NAMESPACE}-wrapper ${NAMESPACE}-hovering">
+    <div class="${NAMESPACE}-toolbar">
+      <div class="${NAMESPACE}-page"></div>
+      <div class="${NAMESPACE}-caption"></div>
+      <div class="${NAMESPACE}-tools">
+        <div class="${NAMESPACE}-zoom" title="Zoom"></div>
+        <div class="${NAMESPACE}-window" title="Open new window"></div>
+        <div class="${NAMESPACE}-close" title="Close"></div>
       </div>
     </div>
-    <div class="lb-icon lb-prev"></div>
-    <div class="lb-icon lb-next"></div>
-    <div class="lb-content">
-      <div class="lb-loading"></div>
+    <div class="${NAMESPACE}-prev"></div>
+    <div class="${NAMESPACE}-next"></div>
+    <div class="${NAMESPACE}-content">
+      <div class="${NAMESPACE}-loading"></div>
     </div>
   </div>
 </div>
@@ -34,6 +34,7 @@ export default class SimpleLightbox {
     this.options = $.extend({}, DEFAULTS, options);
 
     this.$elem = $(elem);
+
     this.uid = new Date().getTime() + Math.random();
     this.namespace = `${NAMESPACE}-${this.uid}`;
 
@@ -69,13 +70,13 @@ export default class SimpleLightbox {
   }
 
   current() {
-    return this.links().filter('.lb-current');
+    return this.links().filter(`.${NAMESPACE}-current`);
   }
 
   setCurrent($link) {
     let $links = this.links();
-    $links.removeClass('lb-current');
-    $link.addClass('lb-current');
+    $links.removeClass(`${NAMESPACE}-current`);
+    $link.addClass(`${NAMESPACE}-current`);
   }
 
   nextLink() {
@@ -116,14 +117,14 @@ class Modal {
     this.ownerDocument = this.$owner.get(0).ownerDocument;
     $(this.ownerDocument.body).addClass(`${NAMESPACE}-disable-scroll`);
 
-    this.$container = $(this.options.template).addClass(NAMESPACE).data(NAMESPACE, this);
+    this.$container = $(this.options.template).data(NAMESPACE, this);
     this.$container.appendTo(this.$owner).show();
 
-    this.$wrapper = this.$container.find('.lb-wrapper');
-    this.$content = this.$container.find('.lb-content');
-    this.$caption = this.$container.find('.lb-caption');
-    this.$page = this.$container.find('.lb-page');
-    this.$loading = this.$container.find('.lb-loading');
+    this.$wrapper = this.$container.find(`.${NAMESPACE}-wrapper`);
+    this.$content = this.$container.find(`.${NAMESPACE}-content`);
+    this.$caption = this.$container.find(`.${NAMESPACE}-caption`);
+    this.$page = this.$container.find(`.${NAMESPACE}-page`);
+    this.$loading = this.$container.find(`.${NAMESPACE}-loading`);
     this.zooming = false;
 
     this.keyboardHandler = new KeyboardHandler(this);
@@ -135,29 +136,29 @@ class Modal {
   bind() {
     this.$container.on('click', (e) => {
       if (!this.zooming) this.close();
-    }).on('click', '.lb-content, .lb-toolbar, .lb-icon', (e) => {
+    }).on('click', `.${NAMESPACE}-content, .${NAMESPACE}-toolbar`, (e) => {
       e.stopPropagation();
-    }).on('click', '.lb-close', (e) => {
+    }).on('click', `.${NAMESPACE}-close`, (e) => {
       this.close();
       e.stopPropagation();
-    }).on('click', '.lb-window', (e) => {
+    }).on('click', `.${NAMESPACE}-window`, (e) => {
       this.openWindow();
       e.stopPropagation();
-    }).on('click', '.lb-zoom', (e) => {
+    }).on('click', `.${NAMESPACE}-zoom`, (e) => {
       this.toggleZoom();
       e.stopPropagation();
-    }).on('click', '.lb-next', (e) => {
+    }).on('click', `.${NAMESPACE}-next`, (e) => {
       this.next();
       e.stopPropagation();
-    }).on('click', '.lb-prev', (e) => {
+    }).on('click', `.${NAMESPACE}-prev`, (e) => {
       this.prev();
       e.stopPropagation();
     });
 
-    this.$container.hover((e) => {
-      this.$wrapper.addClass('lb-hover');
-    }, (e) => {
-      this.$wrapper.removeClass('lb-hover');
+    this.$container.on('mouseenter', (e) => {
+      this.$wrapper.addClass(`${NAMESPACE}-hovering`);
+    }).on('mouseleave', (e) => {
+      this.$wrapper.removeClass(`${NAMESPACE}-hovering`);
     });
 
     this.keyboardHandler.bind();
@@ -190,10 +191,10 @@ class Modal {
 
   toggleZoom() {
     if (this.zooming) {
-      this.$container.removeClass('lb-zooming');
+      this.$container.removeClass(`${NAMESPACE}-zooming`);
       this.zooming = false;
     } else {
-      this.$container.addClass('lb-zooming');
+      this.$container.addClass(`${NAMESPACE}-zooming`);
       this.zooming = true;
     }
     if (this.view) this.view.init(this.zooming);

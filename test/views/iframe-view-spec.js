@@ -1,3 +1,5 @@
+import { NAMESPACE } from '../helper'
+
 describe('jquery-simple-lightbox', () => {
   beforeEach(() => {
     document.body.innerHTML = __html__['index.html'];
@@ -12,7 +14,7 @@ describe('jquery-simple-lightbox', () => {
       $links = $('#iframe').find('a');
       $links.eq(0).click();
 
-      lightbox = $('#iframe').data('simple-lightbox');
+      lightbox = $('#iframe').data(NAMESPACE);
       view = lightbox.modal.view;
 
       $container = lightbox.modal.$container;
@@ -23,22 +25,22 @@ describe('jquery-simple-lightbox', () => {
 
     describe('moves', () => {
       beforeEach(() => {
-        $container.find('.lb-next').click();
+        $container.find(`.${NAMESPACE}-next`).click();
       });
 
       it('moves to next', () => {
-        expect($links.eq(1).hasClass('lb-current')).toEqual(true);
+        expect($links.eq(1).hasClass(`${NAMESPACE}-current`)).toEqual(true);
       });
     });
 
     describe('moves', () => {
       beforeEach(() => {
-        $container.find('.lb-zoom').click();
-        $container.find('.lb-next').click();
+        $container.find(`.${NAMESPACE}-zoom`).click();
+        $container.find(`.${NAMESPACE}-next`).click();
       });
 
       it('moves while zooming', () => {
-        expect($links.eq(1).hasClass('lb-current')).toEqual(true);
+        expect($links.eq(1).hasClass(`${NAMESPACE}-current`)).toEqual(true);
       });
     });
 
@@ -54,7 +56,7 @@ describe('jquery-simple-lightbox', () => {
 
     describe('zoom', () => {
       beforeEach(() => {
-        $container.find('.lb-zoom').click();
+        $container.find(`.${NAMESPACE}-zoom`).click();
       });
 
       it('calls full', () => {

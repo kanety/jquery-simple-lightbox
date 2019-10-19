@@ -1,4 +1,4 @@
-import { drag, wheel, wheelSupported } from '../helper'
+import { NAMESPACE, drag, wheel, wheelSupported } from '../helper'
 
 describe('jquery-simple-lightbox', () => {
   beforeEach(() => {
@@ -14,7 +14,7 @@ describe('jquery-simple-lightbox', () => {
       $links = $('#basic').find('a');
       $links.eq(0).click();
 
-      lightbox = $('#basic').data('simple-lightbox');
+      lightbox = $('#basic').data(NAMESPACE);
       view = lightbox.modal.view;
 
       $container = lightbox.modal.$container;
@@ -24,14 +24,14 @@ describe('jquery-simple-lightbox', () => {
     });
 
     it('moves', () => {
-      $container.find('.lb-next').click().click();
-      expect($links.eq(2).hasClass('lb-current')).toEqual(true);
+      $container.find(`.${NAMESPACE}-next`).click().click();
+      expect($links.eq(2).hasClass(`${NAMESPACE}-current`)).toEqual(true);
     });
 
     it('moves while zooming', () => {
-      $container.find('.lb-zoom').click();
-      $container.find('.lb-next').click().click();
-      expect($links.eq(2).hasClass('lb-current')).toEqual(true);
+      $container.find(`.${NAMESPACE}-zoom`).click();
+      $container.find(`.${NAMESPACE}-next`).click().click();
+      expect($links.eq(2).hasClass(`${NAMESPACE}-current`)).toEqual(true);
     });
 
     describe('window resize', () => {
@@ -44,7 +44,7 @@ describe('jquery-simple-lightbox', () => {
 
     describe('drag', () => {
       beforeEach(() => {
-        $container.find('.lb-zoom').click();
+        $container.find(`.${NAMESPACE}-zoom`).click();
       });
 
       it('handles event', () => {
@@ -63,7 +63,7 @@ describe('jquery-simple-lightbox', () => {
     if (wheelSupported()) {
       describe('wheel', () => {
         beforeEach(() => {
-          $container.find('.lb-zoom').click();
+          $container.find(`.${NAMESPACE}-zoom`).click();
         });
 
         it('handles event', () => {
