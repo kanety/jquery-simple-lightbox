@@ -2,7 +2,6 @@ import $ from 'jquery';
 
 import { NAMESPACE } from './consts';
 import SimpleLightbox from './simple-lightbox';
-import './jquery-simple-lightbox.scss';
 
 $.fn.simpleLightbox = function(options) {
   return this.each((i, elem) => {

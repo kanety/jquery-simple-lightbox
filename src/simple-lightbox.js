@@ -1,4 +1,5 @@
 import $ from 'jquery';
+import './simple-lightbox.scss';
 
 import { NAMESPACE } from './consts';
 import ViewFactory from './views/view-factory';
